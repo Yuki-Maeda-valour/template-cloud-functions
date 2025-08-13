@@ -18,7 +18,7 @@ export const main: HttpFunction = async (req, res) => {
       url: req.url,
       query: req.query,
       headers: req.headers,
-    }
+    },
   });
 };
 
