@@ -1,0 +1,54 @@
+{
+  "name": "template-cloud-functions",
+  "version": "1.0.0",
+  "description": "TypeScript Google Cloud Functions template with Gmail, Drive, and Sheets API integration",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/index.js --sourcemap",
+    "build:watch": "npm run build -- --watch",
+    "dev": "nodemon",
+    "serve": "functions-framework --target=main --source=dist/index.js",
+    "start": "npm run build && npm run serve",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "google-cloud-functions",
+    "typescript",
+    "gmail-api",
+    "drive-api",
+    "sheets-api",
+    "oauth2"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.4",
+    "@types/node": "^24.2.1",
+    "@vitest/ui": "^3.2.4",
+    "dotenv": "^17.2.1",
+    "esbuild": "^0.25.9",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^4.0.0",
+    "@types/google-apps-script": "^1.0.99",
+    "googleapis": "^155.0.1"
+  }
+}
