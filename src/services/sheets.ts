@@ -42,7 +42,7 @@ export class SheetsService {
   async updateValues(
     spreadsheetId: string,
     range: string,
-    values: any[][],
+    values: Array<Array<string | number | boolean | null>>,
     valueInputOption: "RAW" | "USER_ENTERED" = "USER_ENTERED"
   ) {
     const response = await this.sheets.spreadsheets.values.update({
@@ -62,7 +62,7 @@ export class SheetsService {
   async appendValues(
     spreadsheetId: string,
     range: string,
-    values: any[][],
+    values: Array<Array<string | number | boolean | null>>,
     valueInputOption: "RAW" | "USER_ENTERED" = "USER_ENTERED"
   ) {
     const response = await this.sheets.spreadsheets.values.append({

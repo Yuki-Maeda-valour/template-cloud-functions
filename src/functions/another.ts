@@ -3,15 +3,15 @@ import { logger } from "../utils/logger.js";
 import { createRequestInfo, sendError, sendSuccess } from "../utils/response.js";
 
 /**
- * Main function - Pure main endpoint handler
+ * Another function endpoint
  */
-export const main: HttpFunction = async (req, res) => {
-  logger.info("Main function called", { method: req.method, url: req.url });
+export const anotherFunction: HttpFunction = async (req, res) => {
+  logger.info("Another function called", { method: req.method, url: req.url });
 
   try {
     sendSuccess(
       res,
-      "Main endpoint - Development mode",
+      "Another function endpoint",
       { environment: "development" },
       createRequestInfo(req)
     );
@@ -19,6 +19,3 @@ export const main: HttpFunction = async (req, res) => {
     sendError(res, "Internal server error", error);
   }
 };
-
-// 後方互換性のため sampleFunction もエクスポート
-export const sampleFunction = main;

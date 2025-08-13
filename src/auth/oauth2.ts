@@ -1,16 +1,22 @@
 import { google } from "googleapis";
 import type { AuthenticatedUser, GoogleAPITokens } from "../types/google-apis.js";
-import { config, GOOGLE_API_SCOPES } from "../utils/config.js";
+
+// Define scopes locally to avoid importing config at module-evaluation time
+const OAUTH_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/drive.readonly",
+  "https://www.googleapis.com/auth/spreadsheets.readonly",
+] as const;
 
 export class OAuth2Manager {
   private oauth2Client: InstanceType<typeof google.auth.OAuth2>;
 
   constructor() {
-    this.oauth2Client = new google.auth.OAuth2(
-      config.OAUTH2_CLIENT_ID,
-      config.OAUTH2_CLIENT_SECRET,
-      config.OAUTH2_REDIRECT_URI
-    );
+    const clientId = process.env.OAUTH2_CLIENT_ID ?? "";
+    const clientSecret = process.env.OAUTH2_CLIENT_SECRET ?? "";
+    const redirectUri = process.env.OAUTH2_REDIRECT_URI ?? "";
+
+    this.oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
   }
 
   /**
@@ -19,7 +25,7 @@ export class OAuth2Manager {
   generateAuthUrl(): string {
     return this.oauth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: GOOGLE_API_SCOPES,
+      scope: OAUTH_SCOPES as unknown as string[],
       prompt: "consent",
     });
   }

@@ -47,7 +47,15 @@ export class GmailService {
   /**
    * Get message body text
    */
-  extractMessageBody(message: any): string {
+  extractMessageBody(message: {
+    payload?: {
+      body?: { data?: string };
+      parts?: Array<{
+        mimeType?: string;
+        body?: { data?: string };
+      }>;
+    };
+  }): string {
     if (message.payload?.body?.data) {
       return Buffer.from(message.payload.body.data, "base64").toString("utf-8");
     }

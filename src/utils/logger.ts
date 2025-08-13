@@ -14,7 +14,7 @@ class Logger {
     this.level = config.NODE_ENV === "development" ? LogLevel.DEBUG : LogLevel.INFO;
   }
 
-  private log(level: LogLevel, message: string, ...args: any[]): void {
+  private log(level: LogLevel, message: string, ...args: unknown[]): void {
     if (level <= this.level) {
       const timestamp = new Date().toISOString();
       const levelName = LogLevel[level];
@@ -34,19 +34,19 @@ class Logger {
     }
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     this.log(LogLevel.ERROR, message, ...args);
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     this.log(LogLevel.WARN, message, ...args);
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     this.log(LogLevel.INFO, message, ...args);
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     this.log(LogLevel.DEBUG, message, ...args);
   }
 }
