@@ -2,8 +2,11 @@
   "watch": ["src"],
   "ext": "ts,js,json",
   "ignore": ["dist", "node_modules"],
-  "exec": "npm run build && npm run serve",
+  "exec": "npm run build:dev && npm run serve",
   "env": {
-    "NODE_ENV": "development"
-  }
+    "NODE_ENV": "development",
+    "FUNCTION_TARGET": "main",
+    "PORT": "8080"
+  },
+  "delay": "1000"
 }

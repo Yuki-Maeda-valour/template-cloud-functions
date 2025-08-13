@@ -1,10 +1,10 @@
 import { http } from "@google-cloud/functions-framework";
-import { sampleFunction } from "./functions/sample.js";
+import { main } from "./functions/sample.js";
 import { config } from "./utils/config.js";
 import { logger } from "./utils/logger.js";
 
 // Register HTTP function
-http("main", sampleFunction);
+http("main", main);
 
 logger.info("Cloud Functions initialized", {
   target: config.FUNCTION_TARGET,
