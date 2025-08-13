@@ -21,7 +21,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "deploy": "npm run build && gcloud functions deploy main --gen2 --runtime=nodejs18 --source=. --entry-point=main --trigger=http --allow-unauthenticated --region=asia-northeast1",
+    "logs": "gcloud functions logs read main --gen2 --region=asia-northeast1",
+    "logs:tail": "gcloud functions logs tail main --gen2 --region=asia-northeast1"
   },
   "keywords": [
     "google-cloud-functions",
