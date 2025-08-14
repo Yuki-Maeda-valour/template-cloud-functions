@@ -17,8 +17,8 @@ fi
 echo "📋 Project: $GOOGLE_CLOUD_PROJECT"
 gcloud config set project $GOOGLE_CLOUD_PROJECT
 
-# 関数名の設定（デフォルト: template-cloud-functions）
-FUNCTION_NAME=${FUNCTION_NAME:-"template-cloud-functions"}
+# 関数名の設定（デフォルト: functions）
+FUNCTION_NAME=${FUNCTION_NAME:-"functions"}
 
 echo "🔧 Deploying function: $FUNCTION_NAME"
 
