@@ -12,8 +12,8 @@ export class CloudAuth {
         'https://www.googleapis.com/auth/cloud-platform',
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/spreadsheets'
-      ]
+        'https://www.googleapis.com/auth/spreadsheets',
+      ],
     });
   }
 
@@ -32,7 +32,7 @@ export class CloudAuth {
     try {
       const client = await this.auth.getClient();
       const accessToken = await client.getAccessToken();
-      
+
       if (!accessToken.token) {
         throw new Error('アクセストークンが取得できませんでした');
       }

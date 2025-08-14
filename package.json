@@ -10,28 +10,40 @@
     "test": "npx ts-node scripts/test-runner.ts",
     "create": "npx ts-node scripts/function-creator.ts",
     "deploy": "./scripts/deploy.sh",
-    "gcp-build": "npm run build"
+    "gcp-build": "npm run build",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Yuki-Maeda-valour/template-cloud-functions.git"
   },
-  "keywords": ["cloud-functions", "google-cloud", "serverless", "typescript"],
+  "keywords": [
+    "cloud-functions",
+    "google-cloud",
+    "serverless",
+    "typescript"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.2",
     "@google-cloud/pubsub": "^4.1.0",
-    "googleapis": "^128.0.0",
-    "google-auth-library": "^9.6.3"
+    "google-auth-library": "^9.6.3",
+    "googleapis": "^128.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
+    "@biomejs/biome": "2.2.0",
     "@types/express": "^4.17.21",
-    "typescript": "^5.3.0",
-    "ts-node": "^10.9.2",
+    "@types/node": "^20.11.0",
+    "axios": "^1.6.0",
     "express": "^4.18.2",
-    "axios": "^1.6.0"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": "20"

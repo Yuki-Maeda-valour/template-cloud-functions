@@ -1,5 +1,5 @@
-import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { google } from 'googleapis';
 import Logger from '../utils/logger';
 
 export class DriveService {
@@ -23,7 +23,7 @@ export class DriveService {
 
       const oauth2Client = new OAuth2Client(clientId, clientSecret);
       oauth2Client.setCredentials({
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       });
 
       this.drive = google.drive({ version: 'v3', auth: oauth2Client });
@@ -37,16 +37,16 @@ export class DriveService {
   async listFiles(folderId?: string): Promise<any[]> {
     try {
       const query = folderId ? `'${folderId}' in parents` : '';
-      
+
       const response = await this.drive.files.list({
         pageSize: 100,
         fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime)',
-        q: query
+        q: query,
       });
 
       const files = response.data.files || [];
       this.logger.info(`${files.length}件のファイルが見つかりました`);
-      
+
       return files;
     } catch (error) {
       this.logger.error('ファイル一覧の取得に失敗しました', error);
@@ -59,17 +59,17 @@ export class DriveService {
       const fileMetadata = {
         name: name,
         mimeType: 'application/vnd.google-apps.folder',
-        ...(parentId && { parents: [parentId] })
+        ...(parentId && { parents: [parentId] }),
       };
 
       const response = await this.drive.files.create({
         requestBody: fileMetadata,
-        fields: 'id'
+        fields: 'id',
       });
 
       const folderId = response.data.id;
       this.logger.success(`フォルダを作成しました: ${name} (ID: ${folderId})`);
-      
+
       return folderId;
     } catch (error) {
       this.logger.error(`フォルダの作成に失敗しました: ${name}`, error);
@@ -77,27 +77,32 @@ export class DriveService {
     }
   }
 
-  async uploadFile(name: string, content: Buffer, mimeType: string, parentId?: string): Promise<string> {
+  async uploadFile(
+    name: string,
+    content: Buffer,
+    mimeType: string,
+    parentId?: string
+  ): Promise<string> {
     try {
       const fileMetadata = {
         name: name,
-        ...(parentId && { parents: [parentId] })
+        ...(parentId && { parents: [parentId] }),
       };
 
       const media = {
         mimeType: mimeType,
-        body: content
+        body: content,
       };
 
       const response = await this.drive.files.create({
         requestBody: fileMetadata,
         media: media,
-        fields: 'id'
+        fields: 'id',
       });
 
       const fileId = response.data.id;
       this.logger.success(`ファイルをアップロードしました: ${name} (ID: ${fileId})`);
-      
+
       return fileId;
     } catch (error) {
       this.logger.error(`ファイルのアップロードに失敗しました: ${name}`, error);
@@ -107,16 +112,19 @@ export class DriveService {
 
   async downloadFile(fileId: string): Promise<Buffer> {
     try {
-      const response = await this.drive.files.get({
-        fileId: fileId,
-        alt: 'media'
-      }, {
-        responseType: 'arraybuffer'
-      });
+      const response = await this.drive.files.get(
+        {
+          fileId: fileId,
+          alt: 'media',
+        },
+        {
+          responseType: 'arraybuffer',
+        }
+      );
 
       const buffer = Buffer.from(response.data);
       this.logger.success(`ファイルをダウンロードしました: ${fileId}`);
-      
+
       return buffer;
     } catch (error) {
       this.logger.error(`ファイルのダウンロードに失敗しました: ${fileId}`, error);
@@ -127,7 +135,7 @@ export class DriveService {
   async deleteFile(fileId: string): Promise<void> {
     try {
       await this.drive.files.delete({
-        fileId: fileId
+        fileId: fileId,
       });
 
       this.logger.success(`ファイルを削除しました: ${fileId}`);

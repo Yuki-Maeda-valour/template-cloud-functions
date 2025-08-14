@@ -1,5 +1,5 @@
-import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { google } from 'googleapis';
 import Logger from '../utils/logger';
 
 export class SheetsService {
@@ -23,7 +23,7 @@ export class SheetsService {
 
       const oauth2Client = new OAuth2Client(clientId, clientSecret);
       oauth2Client.setCredentials({
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       });
 
       this.sheets = google.sheets({ version: 'v4', auth: oauth2Client });
@@ -38,12 +38,12 @@ export class SheetsService {
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
-        range: range
+        range: range,
       });
 
       const values = response.data.values || [];
       this.logger.info(`スプレッドシートから${values.length}行のデータを読み取りました`);
-      
+
       return values;
     } catch (error) {
       this.logger.error(`スプレッドシートの読み取りに失敗しました: ${spreadsheetId}`, error);
@@ -58,8 +58,8 @@ export class SheetsService {
         range: range,
         valueInputOption: 'RAW',
         requestBody: {
-          values: values
-        }
+          values: values,
+        },
       });
 
       this.logger.success(`スプレッドシートに${values.length}行のデータを書き込みました`);
@@ -77,8 +77,8 @@ export class SheetsService {
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
         requestBody: {
-          values: values
-        }
+          values: values,
+        },
       });
 
       this.logger.success(`スプレッドシートに${values.length}行のデータを追加しました`);
@@ -93,14 +93,14 @@ export class SheetsService {
       const response = await this.sheets.spreadsheets.create({
         requestBody: {
           properties: {
-            title: title
-          }
-        }
+            title: title,
+          },
+        },
       });
 
       const spreadsheetId = response.data.spreadsheetId;
       this.logger.success(`スプレッドシートを作成しました: ${title} (ID: ${spreadsheetId})`);
-      
+
       return spreadsheetId;
     } catch (error) {
       this.logger.error(`スプレッドシートの作成に失敗しました: ${title}`, error);
@@ -111,17 +111,17 @@ export class SheetsService {
   async getSpreadsheetInfo(spreadsheetId: string): Promise<any> {
     try {
       const response = await this.sheets.spreadsheets.get({
-        spreadsheetId: spreadsheetId
+        spreadsheetId: spreadsheetId,
       });
 
       const info = {
         title: response.data.properties?.title,
         sheets: response.data.sheets?.map((sheet: any) => sheet.properties?.title),
-        lastModified: response.data.properties?.updated
+        lastModified: response.data.properties?.updated,
       };
 
       this.logger.info(`スプレッドシート情報を取得しました: ${info.title}`);
-      
+
       return info;
     } catch (error) {
       this.logger.error(`スプレッドシート情報の取得に失敗しました: ${spreadsheetId}`, error);

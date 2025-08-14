@@ -1,5 +1,5 @@
-import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { google } from 'googleapis';
 import Logger from '../utils/logger';
 
 export class GmailService {
@@ -23,7 +23,7 @@ export class GmailService {
 
       const oauth2Client = new OAuth2Client(clientId, clientSecret);
       oauth2Client.setCredentials({
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       });
 
       this.gmail = google.gmail({ version: 'v1', auth: oauth2Client });
@@ -38,12 +38,12 @@ export class GmailService {
     try {
       const response = await this.gmail.users.messages.list({
         userId: 'me',
-        q: 'is:unread'
+        q: 'is:unread',
       });
 
       const messages = response.data.messages || [];
       this.logger.info(`${messages.length}件の未読メールが見つかりました`);
-      
+
       return messages;
     } catch (error) {
       this.logger.error('未読メールの取得に失敗しました', error);
@@ -55,7 +55,7 @@ export class GmailService {
     try {
       const response = await this.gmail.users.messages.get({
         userId: 'me',
-        id: messageId
+        id: messageId,
       });
 
       return response.data;
@@ -71,8 +71,8 @@ export class GmailService {
         userId: 'me',
         id: messageId,
         requestBody: {
-          removeLabelIds: ['UNREAD']
-        }
+          removeLabelIds: ['UNREAD'],
+        },
       });
 
       this.logger.success(`メールを既読にしました: ${messageId}`);
