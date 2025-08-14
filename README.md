@@ -59,10 +59,91 @@ REPORT_SPREADSHEET_ID=your-spreadsheet-id
 
 ## 開発
 
+### 新しい関数の作成
+
+このプロジェクトでは、新しい関数を簡単に作成できるスクリプトが用意されています：
+
+```bash
+# 基本的な関数の作成
+npm run create my-new-function
+
+# 説明付きで関数を作成
+npm run create process-data "データ処理を行う関数"
+```
+
+作成された関数は `src/functions/` ディレクトリに配置され、自動的にテンプレートが生成されます。
+
+#### 関数の実装例
+
+作成された関数ファイルを編集して、実際のロジックを実装します：
+
+```typescript
+// src/functions/my-new-function.ts
+import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
+import Logger from '../shared/utils/logger';
+
+const myNewFunction: CloudFunction = {
+  config: {
+    name: 'my-new-function',
+    description: 'データ処理を行う関数',
+    timeout: 60,
+    memory: 256
+  },
+
+  async handler(data: Record<string, unknown>, context: FunctionContext): Promise<FunctionResult> {
+    const logger = new Logger(context.functionName);
+    
+    try {
+      logger.info('データ処理を開始');
+      
+      // 実際の処理ロジックをここに実装
+      const result = await processData(data);
+      
+      logger.info('データ処理が完了', { result });
+      
+      return {
+        success: true,
+        data: {
+          processedData: result,
+          timestamp: context.timestamp,
+          input: data
+        },
+        logs: ['データ処理が正常に完了しました']
+      };
+      
+    } catch (error) {
+      logger.error('エラーが発生しました', error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      };
+    }
+  }
+};
+
+async function processData(data: Record<string, unknown>) {
+  // データ処理のロジック
+  return { processed: true, data };
+}
+
+export default myNewFunction;
+```
+
 ### 開発サーバーの起動
 
 ```bash
 npm run dev
+```
+
+### ローカルでのテスト
+
+```bash
+# 特定の関数をテスト
+npm run test test my-new-function
+
+# 全関数をテスト
+npm run test
 ```
 
 ### ビルド
@@ -140,6 +221,7 @@ npx @biomejs/biome format --write src/
 src/
 │   ├── index.ts                 # メインエントリーポイント
 │   ├── functions/               # Cloud Functions
+│   │   ├── helloworld.ts        # Hello World サンプル関数
 │   │   ├── backup-drive-files.ts
 │   │   ├── check-unread-emails.ts
 │   │   ├── clean-old-files.ts
@@ -156,8 +238,51 @@ src/
 
 ### 本番環境へのデプロイ
 
+#### 1. 環境変数の設定
+
+```bash
+# Google Cloud プロジェクトの設定
+export GOOGLE_CLOUD_PROJECT=your-project-id
+
+# リージョンの設定（オプション、デフォルト: us-central1）
+export REGION=asia-northeast1
+
+# 関数名の設定（オプション、デフォルト: template-cloud-functions）
+export FUNCTION_NAME=my-custom-function
+```
+
+#### 2. デプロイの実行
+
 ```bash
 npm run deploy
+```
+
+デプロイスクリプトは以下の処理を自動で行います：
+- プロジェクトの設定確認
+- TypeScriptのビルド
+- Cloud Functionsへのデプロイ
+- 関数URLの表示
+
+#### 3. デプロイ後の確認
+
+デプロイが完了すると、以下のような出力が表示されます：
+
+```
+✅ Deployment completed successfully!
+🌐 Function URL: https://asia-northeast1-your-project-id.cloudfunctions.net/my-custom-function
+```
+
+### 関数の呼び出し
+
+デプロイされた関数は、HTTP POSTリクエストで呼び出すことができます：
+
+```bash
+curl -X POST https://asia-northeast1-your-project-id.cloudfunctions.net/my-custom-function \
+  -H "Content-Type: application/json" \
+  -d '{
+    "functionName": "my-new-function",
+    "data": "処理したいデータ"
+  }'
 ```
 
 ### ログの確認
@@ -170,18 +295,44 @@ npm run logs
 npm run logs:tail
 ```
 
-## 貢献
+## 開発ワークフロー例
 
-1. このリポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
+### 1. 新しい機能の追加
+
+```bash
+# 1. 新しい関数を作成
+npm run create email-processor "メール処理機能"
+
+# 2. 関数のロジックを実装
+# src/functions/email-processor.ts を編集
+
+# 3. ローカルでテスト
+npm run test test email-processor
+
+# 4. コード品質チェック
+npm run check
+
+# 5. ビルド
+npm run build
+
+# 6. デプロイ
+npm run deploy
+```
+
+### 2. 既存関数の更新
+
+```bash
+# 1. 関数のロジックを修正
+# src/functions/helloworld.ts を編集
+
+# 2. テスト実行
+npm run test test helloworld
+
+# 3. ビルドとデプロイ
+npm run build && npm run deploy
+```
 
 ## ライセンス
 
-ISC License
+MIT License
 
-## サポート
-
-問題が発生した場合や質問がある場合は、GitHubのIssuesを作成してください。

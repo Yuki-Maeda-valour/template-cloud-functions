@@ -136,6 +136,42 @@ app.post('/test/:functionName', async (req, res) => {
   }
 });
 
+// 個別関数のエンドポイント（GET/POST両方対応）
+app.all('/:functionName', async (req, res) => {
+  try {
+    await FunctionRegistry.loadFunctions();
+
+    const functionName = req.params.functionName;
+    const func = FunctionRegistry.getFunction(functionName);
+
+    if (!func) {
+      return res.status(404).json({
+        success: false,
+        error: `Function '${functionName}' not found`,
+        availableFunctions: FunctionRegistry.getFunctionNames(),
+      });
+    }
+
+    const context: FunctionContext = {
+      functionName,
+      requestId: `${req.method.toLowerCase()}_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      isLocal: true,
+    };
+
+    // GETリクエストの場合はクエリパラメータを、POSTリクエストの場合はボディを使用
+    const data = req.method === 'GET' ? req.query : req.body;
+
+    const result = await func.handler(data, context);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Cloud Functions形式のエンドポイント（互換性）
 app.post('/', async (req, res) => {
   try {
