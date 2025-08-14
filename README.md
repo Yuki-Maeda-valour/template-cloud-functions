@@ -15,7 +15,6 @@ TypeScriptで書かれており、Gmail、Drive、Sheets APIの統合が含ま�
 - 📁 **Drive API**: ファイル管理とバックアップ
 - 📊 **Sheets API**: データ集計とレポート
 - 🔐 **OAuth2**: 安全な認証システム
-- 🧪 **Testing**: 包括的なテスト環境
 
 ## セットアップ
 
