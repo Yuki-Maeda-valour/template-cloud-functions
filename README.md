@@ -46,15 +46,67 @@ cp env.example .env
 ```env
 # Google Cloud 設定
 GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
 
 # OAuth2 設定
 CLIENT_ID=your-oauth-client-id
 CLIENT_SECRET=your-oauth-client-secret
 REDIRECT_URI=your-redirect-uri
 
-# API 設定
-REPORT_SPREADSHEET_ID=your-spreadsheet-id
+# 環境設定
+NODE_ENV=development
+```
+
+#### リソース設定
+
+リソースIDは設定ファイルで管理します。`config/resources.json`を作成してください：
+
+```json
+{
+  "spreadsheets": {
+    "default": "your-default-spreadsheet-id",
+    "sales": "sales-report-123",
+    "tech": "tech-report-456",
+    "hr": "hr-report-789"
+  },
+  "folders": {
+    "default": {
+      "backup_source": "your-default-backup-source-folder",
+      "backup_destination": "your-default-backup-destination-folder",
+      "cleanup": "your-default-cleanup-folder"
+    },
+    "work": {
+      "backup_source": "work-source-folder",
+      "backup_destination": "work-backup-folder",
+      "cleanup": "work-cleanup-folder"
+    },
+    "personal": {
+      "backup_source": "personal-source-folder",
+      "backup_destination": "personal-backup-folder",
+      "cleanup": "personal-cleanup-folder"
+    }
+  }
+}
+```
+
+#### 使用方法
+
+関数呼び出し時に設定名を指定するだけで、対応するリソースを使用できます：
+
+```bash
+# デフォルト設定を使用
+curl -X POST https://your-function-url \
+  -H "Content-Type: application/json" \
+  -d '{"functionName": "send-daily-report"}'
+
+# 営業設定を使用
+curl -X POST https://your-function-url \
+  -H "Content-Type: application/json" \
+  -d '{"functionName": "send-daily-report", "config": "sales"}'
+
+# 仕事用フォルダでバックアップ
+curl -X POST https://your-function-url \
+  -H "Content-Type: application/json" \
+  -d '{"functionName": "backup-drive-files", "config": "work"}'
 ```
 
 ## 開発

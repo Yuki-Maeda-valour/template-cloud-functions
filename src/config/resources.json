@@ -1,0 +1,25 @@
+{
+  "spreadsheets": {
+    "default": "your-default-spreadsheet-id",
+    "sales": "sales-report-123",
+    "tech": "tech-report-456",
+    "hr": "hr-report-789"
+  },
+  "folders": {
+    "default": {
+      "backup_source": "your-default-backup-source-folder",
+      "backup_destination": "your-default-backup-destination-folder",
+      "cleanup": "your-default-cleanup-folder"
+    },
+    "work": {
+      "backup_source": "work-source-folder",
+      "backup_destination": "work-backup-folder",
+      "cleanup": "work-cleanup-folder"
+    },
+    "personal": {
+      "backup_source": "personal-source-folder",
+      "backup_destination": "personal-backup-folder",
+      "cleanup": "personal-cleanup-folder"
+    }
+  }
+}

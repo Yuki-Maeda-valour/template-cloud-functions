@@ -1,6 +1,7 @@
 import CloudAuth from '../shared/auth/cloud-auth';
 import GmailService from '../shared/services/gmail-service';
 import SheetsService from '../shared/services/sheets-service';
+import ConfigManager from '../shared/utils/config-manager';
 import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
@@ -37,22 +38,32 @@ const sendDailyReport: CloudFunction = {
         [today, unreadEmails.length],
       ];
 
-      // スプレッドシートに記録
-      const spreadsheetId = (data.spreadsheetId as string) || process.env.REPORT_SPREADSHEET_ID;
-      if (spreadsheetId) {
-        await sheetsService.appendData(spreadsheetId, 'A1', reportData);
+      // 設定名からスプレッドシートIDを取得
+      const configName = (data.config as string) || 'default';
+      const configManager = ConfigManager.getInstance();
+      const spreadsheetId = configManager.getSpreadsheetId(configName);
+
+      if (!spreadsheetId) {
+        throw new Error(`No spreadsheet ID found for config: ${configName}`);
       }
 
-      logger.info(`Daily report generated: ${unreadEmails.length} unread emails`);
+      // スプレッドシートに記録
+      await sheetsService.appendData(spreadsheetId, 'A1', reportData);
+
+      logger.info(`Daily report generated: ${unreadEmails.length} unread emails`, {
+        configName,
+        spreadsheetId,
+      });
 
       return {
         success: true,
         data: {
           date: today,
           unreadEmails: unreadEmails.length,
+          configName,
           spreadsheetId,
         },
-        logs: [`Generated report for ${today}`],
+        logs: [`Generated report for ${today} using config: ${configName}`],
       };
     } catch (error) {
       logger.error('Error occurred', error);
