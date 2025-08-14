@@ -24,7 +24,7 @@ export default class CloudAuth {
     }
   }
 
-  async getClient(): Promise<any> {
+  async getClient(): Promise<OAuth2Client> {
     try {
       // OAuth2Clientの正しい使用方法
       const accessToken = await this.auth.getAccessToken();

@@ -130,7 +130,24 @@ export default class GmailService {
         snippet: message.snippet || '',
         historyId: message.historyId,
         internalDate: message.internalDate,
-        payload: message.payload as any, // 一時的にany型で型の問題を回避
+        payload: {
+          headers:
+            message.payload.headers?.map((h) => ({ name: h.name || '', value: h.value || '' })) ||
+            [],
+          body: message.payload.body
+            ? {
+                data: message.payload.body.data ?? undefined,
+                attachmentId: message.payload.body.attachmentId ?? undefined,
+              }
+            : undefined,
+          parts: message.payload.parts?.map((p) => ({
+            mimeType: p.mimeType || '',
+            body: {
+              data: p.body?.data ?? undefined,
+              attachmentId: p.body?.attachmentId ?? undefined,
+            },
+          })),
+        },
       };
     } catch (error) {
       this.logger.error(`Failed to get email details for ${messageId}`, error);

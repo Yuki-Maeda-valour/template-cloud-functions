@@ -45,16 +45,30 @@ export default class DriveService {
       const files = response.data.files || [];
       this.logger.info(`Found ${files.length} files in Drive`);
 
-      // 一時的にany型を使用して型の問題を回避
-      return files.map((file: any) => ({
-        id: file.id || '',
-        name: file.name || '',
-        mimeType: file.mimeType || '',
-        size: file.size || undefined,
-        createdTime: file.createdTime || '',
-        modifiedTime: file.modifiedTime || '',
-        parents: file.parents || undefined,
-      }));
+      return files
+        .map((file) => {
+          if (
+            !file ||
+            !file.id ||
+            !file.name ||
+            !file.mimeType ||
+            !file.createdTime ||
+            !file.modifiedTime
+          ) {
+            this.logger.warn('Skipping file with missing required fields', { file });
+            return null;
+          }
+          return {
+            id: file.id,
+            name: file.name,
+            mimeType: file.mimeType,
+            size: file.size || undefined,
+            createdTime: file.createdTime,
+            modifiedTime: file.modifiedTime,
+            parents: file.parents || undefined,
+          } as DriveFile;
+        })
+        .filter((file): file is DriveFile => file !== null);
     } catch (error) {
       this.logger.error('Failed to list files from Drive', error);
       throw error;
@@ -135,7 +149,8 @@ export default class DriveService {
         }
       );
 
-      const buffer = Buffer.from(response.data as any);
+      const data = response.data as ArrayBuffer;
+      const buffer = Buffer.from(new Uint8Array(data));
       this.logger.success(`ファイルをダウンロードしました: ${fileId}`);
 
       return buffer;

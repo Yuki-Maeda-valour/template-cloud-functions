@@ -1,3 +1,4 @@
+import CloudAuth from '../shared/auth/cloud-auth';
 import DriveService from '../shared/services/drive-service';
 import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
@@ -17,8 +18,9 @@ const backupDriveFiles: CloudFunction = {
     try {
       logger.info('Starting execution');
 
-      // 認証クライアントを作成（開発環境用の簡易実装）
-      const authClient = {} as any; // 開発環境では簡易的に
+      // 認証クライアントを作成
+      const auth = new CloudAuth();
+      const authClient = await auth.getClient();
       const driveService = new DriveService(authClient);
       await driveService.initialize();
 
