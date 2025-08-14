@@ -1,16 +1,20 @@
-import { writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import Logger from '../src/shared/utils/logger';
+
+const logger = new Logger('FunctionCreator');
 
 function createFunction(name: string, description: string = '') {
   const filename = `${name}.ts`;
   const filepath = join(__dirname, '../src/functions', filename);
   
   if (existsSync(filepath)) {
-    console.log(`❌ Function ${filename} already exists`);
+    logger.warn(`Function ${filename} already exists`);
     return;
   }
 
-  const template = `import { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
+  const template = `import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
+import Logger from '../shared/utils/logger';
 
 const ${toCamelCase(name)}: CloudFunction = {
   config: {
@@ -20,13 +24,15 @@ const ${toCamelCase(name)}: CloudFunction = {
     memory: 256
   },
 
-  async handler(data: any, context: FunctionContext): Promise<FunctionResult> {
+  async handler(data: Record<string, unknown>, context: FunctionContext): Promise<FunctionResult> {
+    const logger = new Logger(context.functionName);
+    
     try {
-      console.log(\`🚀 [\${context.functionName}] Starting execution\`);
+      logger.info('Starting execution');
       
       // TODO: Implement your function logic here
       
-      console.log(\`✅ [\${context.functionName}] Completed successfully\`);
+      logger.info('Completed successfully');
       
       return {
         success: true,
@@ -39,7 +45,7 @@ const ${toCamelCase(name)}: CloudFunction = {
       };
       
     } catch (error) {
-      console.error(\`❌ [\${context.functionName}] Error:\`, error);
+      logger.error('Error occurred', error);
       
       return {
         success: false,
@@ -53,13 +59,13 @@ export default ${toCamelCase(name)};
 `;
 
   writeFileSync(filepath, template);
-  console.log(`✅ Created function: ${filepath}`);
-  console.log(`📝 Edit the file to implement your logic`);
-  console.log(`🧪 Test with: npm run test test ${name}`);
+  logger.info(`Created function: ${filepath}`);
+  logger.info(`Edit the file to implement your logic`);
+  logger.info(`Test with: npm run test test ${name}`);
 }
 
 function toCamelCase(str: string): string {
-  return str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+  return str.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
 }
 
 const args = process.argv.slice(2);
@@ -67,8 +73,8 @@ const name = args[0];
 const description = args[1];
 
 if (!name) {
-  console.log('Usage: npm run create <function-name> [description]');
-  console.log('Example: npm run create process-emails "Process unread emails"');
+  logger.error('Usage: npm run create <function-name> [description]');
+  logger.error('Example: npm run create process-emails "Process unread emails"');
   process.exit(1);
 }
 

@@ -1,68 +1,55 @@
 import { SheetsService } from '../shared/services/sheets-service';
+import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
 const updateSpreadsheet: CloudFunction = {
   config: {
     name: 'update-spreadsheet',
-    description: 'Update spreadsheet with latest data',
-    schedule: '0 10 * * *', // 毎日10時
+    description: 'スプレッドシートのデータを更新',
     timeout: 120,
     memory: 256,
   },
 
-  async handler(data: any, context: FunctionContext): Promise<FunctionResult> {
+  async handler(data: Record<string, unknown>, context: FunctionContext): Promise<FunctionResult> {
+    const logger = new Logger(context.functionName);
+
     try {
-      console.log(`🚀 [${context.functionName}] Starting execution`);
+      logger.info('Starting execution');
 
       const sheetsService = new SheetsService();
       await sheetsService.initialize();
 
-      const spreadsheetId = data.spreadsheetId || process.env.UPDATE_SPREADSHEET_ID;
-      if (!spreadsheetId) {
-        throw new Error('Spreadsheet ID not specified');
+      const spreadsheetId = data.spreadsheetId as string;
+      const newData = data.data as string[][];
+
+      if (!spreadsheetId || !newData) {
+        throw new Error('spreadsheetId and data are required');
       }
-
-      // 現在の日時
-      const now = new Date();
-      const timestamp = now.toISOString();
-      const dateStr = now.toISOString().split('T')[0];
-
-      // 更新データ
-      const updateData = [
-        ['Last Updated', 'Timestamp', 'Status'],
-        [dateStr, timestamp, 'Success'],
-      ];
 
       // 既存データを読み取り
-      let existingData: any[][] = [];
+      let existingData: string[][] = [];
       try {
         existingData = await sheetsService.readData(spreadsheetId, 'A:C');
-      } catch (error) {
-        console.log('No existing data found, creating new');
+      } catch {
+        logger.info('No existing data found, creating new');
       }
 
-      // データを更新または追加
-      if (existingData.length > 0) {
-        // 既存データがある場合は更新
-        await sheetsService.writeData(spreadsheetId, 'A1', updateData);
-      } else {
-        // 新規データの場合は追加
-        await sheetsService.appendData(spreadsheetId, 'A1', updateData);
-      }
+      // 新しいデータを追加
+      await sheetsService.appendData(spreadsheetId, 'A1', newData);
 
-      console.log(`📊 Spreadsheet updated successfully`);
+      logger.info(`Updated spreadsheet with ${newData.length} rows`);
 
       return {
         success: true,
         data: {
           spreadsheetId,
-          lastUpdated: timestamp,
-          date: dateStr,
+          rowsAdded: newData.length,
+          totalRows: existingData.length + newData.length,
         },
-        logs: [`Updated spreadsheet at ${timestamp}`],
+        logs: [`Updated spreadsheet ${spreadsheetId}`],
       };
     } catch (error) {
-      console.error(`❌ [${context.functionName}] Error:`, error);
+      logger.error('Error occurred', error);
 
       return {
         success: false,

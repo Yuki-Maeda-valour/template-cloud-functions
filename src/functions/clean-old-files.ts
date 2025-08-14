@@ -1,72 +1,74 @@
 import { DriveService } from '../shared/services/drive-service';
+import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
 const cleanOldFiles: CloudFunction = {
   config: {
     name: 'clean-old-files',
-    description: 'Clean old files based on age and size',
+    description: '古いファイルを削除してストレージを節約',
     schedule: '0 3 * * 0', // 毎週日曜日3時
-    timeout: 240,
-    memory: 256,
+    timeout: 300,
+    memory: 512,
   },
 
-  async handler(data: any, context: FunctionContext): Promise<FunctionResult> {
+  async handler(data: Record<string, unknown>, context: FunctionContext): Promise<FunctionResult> {
+    const logger = new Logger(context.functionName);
+
     try {
-      console.log(`🚀 [${context.functionName}] Starting execution`);
+      logger.info('Starting execution');
 
       const driveService = new DriveService();
       await driveService.initialize();
 
-      const targetFolderId = data.targetFolderId || process.env.CLEANUP_TARGET_FOLDER;
-      if (!targetFolderId) {
-        throw new Error('Target folder ID not specified');
+      const folderId = (data.folderId as string) || process.env.CLEANUP_FOLDER_ID;
+      const daysOld = (data.daysOld as number) || 90;
+
+      if (!folderId) {
+        throw new Error('Folder ID is required');
       }
 
-      // ファイル一覧取得
-      const files = await driveService.listFiles(targetFolderId);
-
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const files = await driveService.listFiles(folderId);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
       let deletedCount = 0;
       let totalSizeSaved = 0;
 
       for (const file of files) {
-        if (file.id && file.modifiedTime) {
-          const modifiedDate = new Date(file.modifiedTime);
+        const fileDate = new Date(file.modifiedTime);
 
-          // 30日以上古いファイルを削除
-          if (modifiedDate < thirtyDaysAgo) {
-            try {
-              await driveService.deleteFile(file.id);
-              deletedCount++;
+        if (fileDate < cutoffDate) {
+          try {
+            await driveService.deleteFile(file.id);
+            deletedCount++;
 
-              if (file.size) {
-                totalSizeSaved += parseInt(file.size);
-              }
-
-              console.log(`🗑️ Deleted old file: ${file.name}`);
-            } catch (error) {
-              console.warn(`Failed to delete ${file.name}:`, error);
+            if (file.size) {
+              totalSizeSaved += parseInt(file.size, 10);
             }
+
+            logger.info(`Deleted old file: ${file.name}`);
+          } catch (error) {
+            logger.warn(`Failed to delete ${file.name}`, error);
           }
         }
       }
 
       const sizeInMB = Math.round((totalSizeSaved / (1024 * 1024)) * 100) / 100;
-      console.log(`🧹 Cleaned up ${deletedCount} old files, saved ${sizeInMB} MB`);
+      logger.info(`Cleaned up ${deletedCount} old files, saved ${sizeInMB} MB`);
 
       return {
         success: true,
         data: {
-          deletedFiles: deletedCount,
+          folderId,
+          daysOld,
           totalFiles: files.length,
+          deletedFiles: deletedCount,
           sizeSavedMB: sizeInMB,
         },
-        logs: [`Cleaned up ${deletedCount} old files`],
+        logs: [`Cleanup completed for folder ${folderId}`],
       };
     } catch (error) {
-      console.error(`❌ [${context.functionName}] Error:`, error);
+      logger.error('Error occurred', error);
 
       return {
         success: false,

@@ -1,55 +1,61 @@
-import { OAuth2Client } from 'google-auth-library';
+import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import Logger from '../utils/logger';
 
-export class DriveService {
-  private drive: any;
+interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  createdTime: string;
+  modifiedTime: string;
+  parents?: string[];
+}
+
+export default class DriveService {
+  private drive: ReturnType<typeof google.drive>;
   private logger: Logger;
 
-  constructor() {
+  constructor(authClient: OAuth2Client) {
+    this.drive = google.drive({ version: 'v3', auth: authClient });
     this.logger = new Logger('DriveService');
   }
 
   async initialize(): Promise<void> {
     try {
-      // 環境変数から認証情報を取得
-      const clientId = process.env.GOOGLE_CLIENT_ID;
-      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-
-      if (!clientId || !clientSecret || !refreshToken) {
-        throw new Error('Google Drive認証情報が設定されていません');
-      }
-
-      const oauth2Client = new OAuth2Client(clientId, clientSecret);
-      oauth2Client.setCredentials({
-        refresh_token: refreshToken,
-      });
-
-      this.drive = google.drive({ version: 'v3', auth: oauth2Client });
-      this.logger.success('Google Driveサービスが初期化されました');
+      // サービスアカウントの権限をテスト
+      await this.drive.files.list({ pageSize: 1 });
+      this.logger.info('Drive service initialized successfully');
     } catch (error) {
-      this.logger.error('Google Driveサービスの初期化に失敗しました', error);
+      this.logger.error('Failed to initialize Drive service', error);
       throw error;
     }
   }
 
-  async listFiles(folderId?: string): Promise<any[]> {
+  async listFiles(folderId?: string): Promise<DriveFile[]> {
     try {
       const query = folderId ? `'${folderId}' in parents` : '';
 
       const response = await this.drive.files.list({
-        pageSize: 100,
-        fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime)',
         q: query,
+        fields: 'files(id,name,mimeType,size,createdTime,modifiedTime,parents)',
+        pageSize: 1000,
       });
 
       const files = response.data.files || [];
-      this.logger.info(`${files.length}件のファイルが見つかりました`);
+      this.logger.info(`Found ${files.length} files in Drive`);
 
-      return files;
+      return files.map((file) => ({
+        id: file.id!,
+        name: file.name!,
+        mimeType: file.mimeType!,
+        size: file.size,
+        createdTime: file.createdTime!,
+        modifiedTime: file.modifiedTime!,
+        parents: file.parents,
+      }));
     } catch (error) {
-      this.logger.error('ファイル一覧の取得に失敗しました', error);
+      this.logger.error('Failed to list files from Drive', error);
       throw error;
     }
   }
@@ -134,14 +140,34 @@ export class DriveService {
 
   async deleteFile(fileId: string): Promise<void> {
     try {
-      await this.drive.files.delete({
-        fileId: fileId,
+      await this.drive.files.delete({ fileId });
+      this.logger.info(`File ${fileId} deleted successfully`);
+    } catch (error) {
+      this.logger.error(`Failed to delete file ${fileId}`, error);
+      throw error;
+    }
+  }
+
+  async getFileMetadata(fileId: string): Promise<DriveFile | null> {
+    try {
+      const response = await this.drive.files.get({
+        fileId,
+        fields: 'id,name,mimeType,size,createdTime,modifiedTime,parents',
       });
 
-      this.logger.success(`ファイルを削除しました: ${fileId}`);
+      const file = response.data;
+      return {
+        id: file.id!,
+        name: file.name!,
+        mimeType: file.mimeType!,
+        size: file.size,
+        createdTime: file.createdTime!,
+        modifiedTime: file.modifiedTime!,
+        parents: file.parents,
+      };
     } catch (error) {
-      this.logger.error(`ファイルの削除に失敗しました: ${fileId}`, error);
-      throw error;
+      this.logger.error(`Failed to get metadata for file ${fileId}`, error);
+      return null;
     }
   }
 }

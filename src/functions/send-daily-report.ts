@@ -1,19 +1,22 @@
 import { GmailService } from '../shared/services/gmail-service';
 import { SheetsService } from '../shared/services/sheets-service';
+import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
 const sendDailyReport: CloudFunction = {
   config: {
     name: 'send-daily-report',
-    description: 'Generate and send daily activity report',
+    description: '日次レポートを生成してスプレッドシートに記録',
     schedule: '0 18 * * *', // 毎日18時
     timeout: 180,
     memory: 256,
   },
 
-  async handler(data: any, context: FunctionContext): Promise<FunctionResult> {
+  async handler(data: Record<string, unknown>, context: FunctionContext): Promise<FunctionResult> {
+    const logger = new Logger(context.functionName);
+
     try {
-      console.log(`🚀 [${context.functionName}] Starting execution`);
+      logger.info('Starting execution');
 
       const sheetsService = new SheetsService();
       const gmailService = new GmailService();
@@ -31,12 +34,12 @@ const sendDailyReport: CloudFunction = {
       ];
 
       // スプレッドシートに記録
-      const spreadsheetId = data.spreadsheetId || process.env.REPORT_SPREADSHEET_ID;
+      const spreadsheetId = (data.spreadsheetId as string) || process.env.REPORT_SPREADSHEET_ID;
       if (spreadsheetId) {
         await sheetsService.appendData(spreadsheetId, 'A1', reportData);
       }
 
-      console.log(`📊 Daily report generated: ${unreadEmails.length} unread emails`);
+      logger.info(`Daily report generated: ${unreadEmails.length} unread emails`);
 
       return {
         success: true,
@@ -48,7 +51,7 @@ const sendDailyReport: CloudFunction = {
         logs: [`Generated report for ${today}`],
       };
     } catch (error) {
-      console.error(`❌ [${context.functionName}] Error:`, error);
+      logger.error('Error occurred', error);
 
       return {
         success: false,

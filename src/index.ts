@@ -1,18 +1,7 @@
-import {
-  CloudEvent,
-  type CloudEventFunction,
-  type HttpFunction,
-} from '@google-cloud/functions-framework';
+import type { CloudEventFunction, HttpFunction } from '@google-cloud/functions-framework';
 import FunctionRegistry from './shared/utils/function-registry';
+import Logger from './shared/utils/logger';
 import type { FunctionContext } from './types/function';
-
-// Pub/Subメッセージの型定義
-interface PubsubMessage {
-  data?: string;
-  attributes?: { [key: string]: string };
-  messageId?: string;
-  publishTime?: string;
-}
 
 // CloudEventのデータ構造
 interface CloudEventData {
@@ -27,6 +16,7 @@ interface CloudEventData {
 // HTTPトリガー（シンプルルーティングのみ）
 export const httpHandler: HttpFunction = async (req, res) => {
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const logger = new Logger('HTTPHandler');
 
   try {
     await FunctionRegistry.loadFunctions();
@@ -43,6 +33,7 @@ export const httpHandler: HttpFunction = async (req, res) => {
     const result = await executeFunction(functionName, data, requestId);
     res.status(200).json(result);
   } catch (error) {
+    logger.error('HTTP execution failed', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -54,6 +45,7 @@ export const httpHandler: HttpFunction = async (req, res) => {
 // Pub/Subトリガー（シンプルルーティングのみ）
 export const pubsubHandler: CloudEventFunction<CloudEventData> = async (cloudEvent) => {
   const requestId = `pubsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const logger = new Logger('PubSubHandler');
 
   try {
     await FunctionRegistry.loadFunctions();
@@ -65,13 +57,17 @@ export const pubsubHandler: CloudEventFunction<CloudEventData> = async (cloudEve
       await executeFunction(data.functionName, data, requestId);
     }
   } catch (error) {
-    console.error('Pub/Sub execution failed:', error);
+    logger.error('Pub/Sub execution failed', error);
     throw error;
   }
 };
 
 // 関数実行ヘルパー（業務ロジックなし）
-async function executeFunction(functionName: string, data: any, requestId: string) {
+async function executeFunction(
+  functionName: string,
+  data: Record<string, unknown>,
+  requestId: string
+) {
   const func = FunctionRegistry.getFunction(functionName);
 
   if (!func) {

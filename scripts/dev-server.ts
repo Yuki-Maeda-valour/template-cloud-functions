@@ -1,14 +1,16 @@
 import express from 'express';
 import FunctionRegistry from '../src/shared/utils/function-registry';
-import { FunctionContext } from '../src/types/function';
+import type { FunctionContext } from '../src/types/function';
+import Logger from '../src/shared/utils/logger';
 
 const app = express();
 const PORT = 8080;
+const logger = new Logger('DevServer');
 
 app.use(express.json());
 
 // 開発用ダッシュボード
-app.get('/', async (req, res) => {
+app.get('/', async (_req, res) => {
   await FunctionRegistry.loadFunctions();
   const functions = FunctionRegistry.getAllFunctions();
   
@@ -87,7 +89,7 @@ app.get('/', async (req, res) => {
 });
 
 // 関数リスト取得
-app.get('/functions', async (req, res) => {
+app.get('/functions', async (_req, res) => {
   await FunctionRegistry.loadFunctions();
   const functions = FunctionRegistry.getAllFunctions().map(f => ({
     name: f.config.name,
@@ -171,7 +173,7 @@ app.post('/', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Development server running on http://localhost:${PORT}`);
-  console.log(`📋 Dashboard: http://localhost:${PORT}`);
-  console.log(`📡 API: http://localhost:${PORT}/functions`);
+  logger.info(`Development server running on http://localhost:${PORT}`);
+  logger.info(`Dashboard: http://localhost:${PORT}`);
+  logger.info(`API: http://localhost:${PORT}/functions`);
 });

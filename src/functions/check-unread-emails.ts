@@ -1,36 +1,39 @@
 import { GmailService } from '../shared/services/gmail-service';
+import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
 const checkUnreadEmails: CloudFunction = {
   config: {
     name: 'check-unread-emails',
-    description: 'Check and count unread emails',
-    schedule: '0 9 * * *', // 毎日9時
+    description: '未読メールの数をチェック',
+    schedule: '*/30 * * * *', // 30分ごと
     timeout: 60,
     memory: 256,
   },
 
-  async handler(data: any, context: FunctionContext): Promise<FunctionResult> {
+  async handler(_data: Record<string, unknown>, context: FunctionContext): Promise<FunctionResult> {
+    const logger = new Logger(context.functionName);
+
     try {
-      console.log(`🚀 [${context.functionName}] Starting execution`);
+      logger.info('Starting execution');
 
       const gmailService = new GmailService();
       await gmailService.initialize();
 
       const unreadEmails = await gmailService.getUnreadEmails();
 
-      console.log(`📧 Found ${unreadEmails.length} unread emails`);
+      logger.info(`Found ${unreadEmails.length} unread emails`);
 
       return {
         success: true,
         data: {
           unreadCount: unreadEmails.length,
-          timestamp: context.timestamp,
+          timestamp: new Date().toISOString(),
         },
-        logs: [`Found ${unreadEmails.length} unread emails`],
+        logs: [`Checked unread emails: ${unreadEmails.length} found`],
       };
     } catch (error) {
-      console.error(`❌ [${context.functionName}] Error:`, error);
+      logger.error('Error occurred', error);
 
       return {
         success: false,
