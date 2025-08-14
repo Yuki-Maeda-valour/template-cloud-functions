@@ -1,0 +1,39 @@
+{
+  "name": "template-cloud-functions",
+  "version": "1.0.0",
+  "description": "Lean Cloud Functions Architecture Template",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "npm run test dev",
+    "start": "npm run build && npx @google-cloud/functions-framework --target=httpHandler --port=8080",
+    "test": "npx ts-node scripts/test-runner.ts",
+    "create": "npx ts-node scripts/function-creator.ts",
+    "deploy": "./scripts/deploy.sh",
+    "gcp-build": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yuki-Maeda-valour/template-cloud-functions.git"
+  },
+  "keywords": ["cloud-functions", "google-cloud", "serverless", "typescript"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.2",
+    "@google-cloud/pubsub": "^4.1.0",
+    "googleapis": "^128.0.0",
+    "google-auth-library": "^9.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/express": "^4.17.21",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.2",
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": "20"
+  }
+}
