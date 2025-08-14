@@ -1,7 +1,7 @@
 import express from 'express';
 import FunctionRegistry from '../src/shared/utils/function-registry';
-import type { FunctionContext } from '../src/types/function';
 import Logger from '../src/shared/utils/logger';
+import type { FunctionContext } from '../src/types/function';
 
 const app = express();
 const PORT = 8080;
@@ -13,7 +13,7 @@ app.use(express.json());
 app.get('/', async (_req, res) => {
   await FunctionRegistry.loadFunctions();
   const functions = FunctionRegistry.getAllFunctions();
-  
+
   const html = `
   <!DOCTYPE html>
   <html>
@@ -40,7 +40,9 @@ app.get('/', async (_req, res) => {
               <p>Available Functions: ${functions.length}</p>
           </div>
           
-          ${functions.map(func => `
+          ${functions
+            .map(
+              (func) => `
               <div class="function">
                   <div class="function-name">${func.config.name}</div>
                   <div class="function-desc">${func.config.description}</div>
@@ -49,7 +51,9 @@ app.get('/', async (_req, res) => {
                   </button>
                   <div id="result-${func.config.name}" class="result"></div>
               </div>
-          `).join('')}
+          `
+            )
+            .join('')}
       </div>
 
       <script>
@@ -84,19 +88,19 @@ app.get('/', async (_req, res) => {
   </body>
   </html>
   `;
-  
+
   res.send(html);
 });
 
 // 関数リスト取得
 app.get('/functions', async (_req, res) => {
   await FunctionRegistry.loadFunctions();
-  const functions = FunctionRegistry.getAllFunctions().map(f => ({
+  const functions = FunctionRegistry.getAllFunctions().map((f) => ({
     name: f.config.name,
     description: f.config.description,
-    schedule: f.config.schedule
+    schedule: f.config.schedule,
   }));
-  
+
   res.json({ functions, count: functions.length });
 });
 
@@ -104,14 +108,14 @@ app.get('/functions', async (_req, res) => {
 app.post('/test/:functionName', async (req, res) => {
   try {
     await FunctionRegistry.loadFunctions();
-    
+
     const functionName = req.params.functionName;
     const func = FunctionRegistry.getFunction(functionName);
-    
+
     if (!func) {
       return res.status(404).json({
         success: false,
-        error: `Function '${functionName}' not found`
+        error: `Function '${functionName}' not found`,
       });
     }
 
@@ -119,16 +123,15 @@ app.post('/test/:functionName', async (req, res) => {
       functionName,
       requestId: `test_${Date.now()}`,
       timestamp: new Date().toISOString(),
-      isLocal: true
+      isLocal: true,
     };
 
     const result = await func.handler(req.body, context);
     res.json(result);
-    
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -137,20 +140,20 @@ app.post('/test/:functionName', async (req, res) => {
 app.post('/', async (req, res) => {
   try {
     await FunctionRegistry.loadFunctions();
-    
+
     const { functionName, ...data } = req.body;
-    
+
     if (!functionName) {
       return res.status(400).json({
         error: 'functionName is required',
-        availableFunctions: FunctionRegistry.getFunctionNames()
+        availableFunctions: FunctionRegistry.getFunctionNames(),
       });
     }
 
     const func = FunctionRegistry.getFunction(functionName);
     if (!func) {
       return res.status(404).json({
-        error: `Function '${functionName}' not found`
+        error: `Function '${functionName}' not found`,
       });
     }
 
@@ -158,16 +161,15 @@ app.post('/', async (req, res) => {
       functionName,
       requestId: `http_${Date.now()}`,
       timestamp: new Date().toISOString(),
-      isLocal: true
+      isLocal: true,
     };
 
     const result = await func.handler(data, context);
     res.json(result);
-    
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });

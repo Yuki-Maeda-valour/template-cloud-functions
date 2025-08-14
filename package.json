@@ -11,12 +11,12 @@
     "create": "npx ts-node scripts/function-creator.ts",
     "deploy": "./scripts/deploy.sh",
     "gcp-build": "npm run build",
-    "lint": "biome lint src/",
-    "lint:fix": "biome lint --write src/",
-    "format": "biome format src/",
-    "format:fix": "biome format --write src/",
-    "check": "biome check src/",
-    "check:fix": "biome check --write src/"
+    "lint": "biome lint src/ scripts/",
+    "lint:fix": "biome lint --write src/ scripts/",
+    "format": "biome format src/ scripts/",
+    "format:fix": "biome format --write src/ scripts/",
+    "check": "biome check src/ scripts/",
+    "check:fix": "biome check --write src/ scripts/"
   },
   "repository": {
     "type": "git",

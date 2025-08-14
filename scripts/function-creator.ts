@@ -1,4 +1,4 @@
-import { writeFileSync, existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Logger from '../src/shared/utils/logger';
 
@@ -7,7 +7,7 @@ const logger = new Logger('FunctionCreator');
 function createFunction(name: string, description: string = '') {
   const filename = `${name}.ts`;
   const filepath = join(__dirname, '../src/functions', filename);
-  
+
   if (existsSync(filepath)) {
     logger.warn(`Function ${filename} already exists`);
     return;

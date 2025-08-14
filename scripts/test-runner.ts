@@ -1,5 +1,5 @@
+import { type ChildProcess, spawn } from 'node:child_process';
 import axios from 'axios';
-import { spawn, ChildProcess } from 'child_process';
 
 class TestRunner {
   private server: ChildProcess | null = null;
@@ -7,22 +7,22 @@ class TestRunner {
 
   async startServer(): Promise<void> {
     return new Promise((resolve, reject) => {
-      console.log('🚀 Starting development server...');
-      
+      process.stdout.write('🚀 Starting development server...\n');
+
       this.server = spawn('npx', ['ts-node', 'scripts/dev-server.ts'], {
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       this.server.stdout?.on('data', (data) => {
         const output = data.toString();
-        console.log(output);
+        process.stdout.write(output);
         if (output.includes('Development server running')) {
           setTimeout(resolve, 1000);
         }
       });
 
       this.server.stderr?.on('data', (data) => {
-        console.error(data.toString());
+        process.stderr.write(data.toString());
       });
 
       this.server.on('error', reject);
@@ -33,42 +33,47 @@ class TestRunner {
     try {
       const response = await axios.get(`${this.baseUrl}/functions`);
       const { functions, count } = response.data;
-      
-      console.log(`\n📋 Available Functions (${count}):`);
-      functions.forEach((func: any) => {
-        console.log(`  📝 ${func.name} - ${func.description}`);
+
+      process.stdout.write(`\n📋 Available Functions (${count}):\n`);
+      functions.forEach((func: { name: string; description: string; schedule?: string }) => {
+        process.stdout.write(`  📝 ${func.name} - ${func.description}\n`);
         if (func.schedule) {
-          console.log(`      ⏰ Schedule: ${func.schedule}`);
+          process.stdout.write(`      ⏰ Schedule: ${func.schedule}\n`);
         }
       });
     } catch (error) {
-      console.error('Failed to list functions:', error);
+      process.stderr.write(
+        `Failed to list functions: ${error instanceof Error ? error.message : String(error)}\n`
+      );
     }
   }
 
-  async testFunction(functionName: string, testData: any = { test: true }): Promise<void> {
+  async testFunction(
+    functionName: string,
+    testData: Record<string, unknown> = { test: true }
+  ): Promise<void> {
     try {
-      console.log(`\n🧪 Testing function: ${functionName}`);
-      
+      process.stdout.write(`\n🧪 Testing function: ${functionName}\n`);
+
       const response = await axios.post(`${this.baseUrl}/test/${functionName}`, testData, {
-        timeout: 30000
+        timeout: 30000,
       });
 
-      console.log('✅ Test Result:');
-      console.log('Success:', response.data.success);
+      process.stdout.write('✅ Test Result:\n');
+      process.stdout.write(`Success: ${String(response.data.success)}\n`);
       if (response.data.data) {
-        console.log('Data:', JSON.stringify(response.data.data, null, 2));
+        process.stdout.write(`Data: ${JSON.stringify(response.data.data, null, 2)}\n`);
       }
       if (response.data.logs) {
-        console.log('Logs:', response.data.logs);
+        process.stdout.write(`Logs: ${JSON.stringify(response.data.logs)}\n`);
       }
-
-    } catch (error: any) {
-      console.log('❌ Test Failed:');
-      if (error.response?.data) {
-        console.log('Error:', error.response.data.error);
+    } catch (error) {
+      process.stdout.write('❌ Test Failed:\n');
+      const err = error as { response?: { data?: { error?: string } }; message?: string };
+      if (err.response?.data?.error) {
+        process.stdout.write(`Error: ${err.response.data.error}\n`);
       } else {
-        console.log('Error:', error.message);
+        process.stdout.write(`Error: ${err.message ?? 'Unknown error'}\n`);
       }
     }
   }
@@ -77,21 +82,23 @@ class TestRunner {
     try {
       const response = await axios.get(`${this.baseUrl}/functions`);
       const { functions } = response.data;
-      
-      console.log(`\n🧪 Testing all ${functions.length} functions...\n`);
-      
+
+      process.stdout.write(`\n🧪 Testing all ${functions.length} functions...\n\n`);
+
       for (const func of functions) {
         await this.testFunction(func.name);
       }
     } catch (error) {
-      console.error('Failed to test all functions:', error);
+      process.stderr.write(
+        `Failed to test all functions: ${error instanceof Error ? error.message : String(error)}\n`
+      );
     }
   }
 
   stop(): void {
     if (this.server) {
       this.server.kill();
-      console.log('\n👋 Server stopped');
+      process.stdout.write('\n👋 Server stopped\n');
     }
   }
 }
@@ -116,32 +123,32 @@ async function main() {
       case 'list':
         await runner.listFunctions();
         break;
-        
+
       case 'test':
         if (!functionName) {
-          console.log('Usage: npm run test test <function-name>');
+          process.stdout.write('Usage: npm run test test <function-name>\n');
           return;
         }
         await runner.testFunction(functionName);
         break;
-        
+
       case 'test-all':
         await runner.testAll();
         break;
-        
+
       case 'dev':
         await runner.listFunctions();
-        console.log(`\n🌐 Dashboard: ${runner['baseUrl']}`);
-        console.log('Press Ctrl+C to stop');
+        process.stdout.write(`\n🌐 Dashboard: ${runner.baseUrl}\n`);
+        process.stdout.write('Press Ctrl+C to stop\n');
         // 開発モードは停止しない
         return;
-        
+
       default:
-        console.log('Usage:');
-        console.log('  npm run test list');
-        console.log('  npm run test test <function-name>');
-        console.log('  npm run test test-all');
-        console.log('  npm run test dev');
+        process.stdout.write('Usage:\n');
+        process.stdout.write('  npm run test list\n');
+        process.stdout.write('  npm run test test <function-name>\n');
+        process.stdout.write('  npm run test test-all\n');
+        process.stdout.write('  npm run test dev\n');
     }
   } finally {
     if (command !== 'dev') {
@@ -150,4 +157,6 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  process.stderr.write(`${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`);
+});
