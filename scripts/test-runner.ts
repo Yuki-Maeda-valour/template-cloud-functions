@@ -3,7 +3,7 @@ import axios from 'axios';
 
 class TestRunner {
   private server: ChildProcess | null = null;
-  private readonly baseUrl = 'http://localhost:8080';
+  public readonly baseUrl = 'http://localhost:8080';
 
   async startServer(): Promise<void> {
     return new Promise((resolve, reject) => {
