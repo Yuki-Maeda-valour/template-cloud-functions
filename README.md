@@ -1,11 +1,9 @@
-# 🚀 Lean Cloud Functions Architecture Template
+# 🚀 Cloud Functions Architecture Template
 
 Google Cloud Functions用の軽量で拡張可能なアーキテクチャテンプレートです。
 
 ## ✨ 特徴
 
-- **薄いindex.ts**: 業務ロジックなしのシンプルなルーター
-- **関数の独立性**: 各関数が完全に独立したファイル
 - **自動検出**: 新しい関数ファイルを自動認識
 - **簡単な追加**: 1コマンドで新関数作成
 - **個別テスト**: 関数ごとに独立してテスト可能
