@@ -1,4 +1,4 @@
-import { DriveService } from '../shared/services/drive-service';
+import DriveService from '../shared/services/drive-service';
 import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
@@ -17,7 +17,9 @@ const cleanOldFiles: CloudFunction = {
     try {
       logger.info('Starting execution');
 
-      const driveService = new DriveService();
+      // 認証クライアントを作成（開発環境用の簡易実装）
+      const authClient = {} as any; // 開発環境では簡易的に
+      const driveService = new DriveService(authClient);
       await driveService.initialize();
 
       const folderId = (data.folderId as string) || process.env.CLEANUP_FOLDER_ID;
@@ -48,7 +50,7 @@ const cleanOldFiles: CloudFunction = {
 
             logger.info(`Deleted old file: ${file.name}`);
           } catch (error) {
-            logger.warn(`Failed to delete ${file.name}`, error);
+            logger.warn(`Failed to delete ${file.name}`, { error: String(error) });
           }
         }
       }

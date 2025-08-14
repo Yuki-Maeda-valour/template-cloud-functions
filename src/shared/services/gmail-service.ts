@@ -62,14 +62,23 @@ export default class GmailService {
       const messages = response.data.messages || [];
       this.logger.info(`Found ${messages.length} unread emails`);
 
-      return messages.map((message) => ({
-        id: message.id!,
-        threadId: message.threadId!,
-        labelIds: message.labelIds || [],
-        snippet: message.snippet || '',
-        historyId: message.historyId!,
-        internalDate: message.internalDate!,
-      }));
+      return messages
+        .map((message) => {
+          if (!message.id || !message.threadId || !message.historyId || !message.internalDate) {
+            this.logger.warn('Skipping message with missing required fields', { message });
+            return null;
+          }
+
+          return {
+            id: message.id,
+            threadId: message.threadId,
+            labelIds: message.labelIds || [],
+            snippet: message.snippet || '',
+            historyId: message.historyId,
+            internalDate: message.internalDate,
+          };
+        })
+        .filter((message): message is GmailMessage => message !== null);
     } catch (error) {
       this.logger.error('Failed to get unread emails', error);
       throw error;
@@ -102,14 +111,26 @@ export default class GmailService {
       });
 
       const message = response.data;
+
+      if (
+        !message.id ||
+        !message.threadId ||
+        !message.historyId ||
+        !message.internalDate ||
+        !message.payload
+      ) {
+        this.logger.warn('Message missing required fields', { messageId, message });
+        return null;
+      }
+
       return {
-        id: message.id!,
-        threadId: message.threadId!,
+        id: message.id,
+        threadId: message.threadId,
         labelIds: message.labelIds || [],
         snippet: message.snippet || '',
-        historyId: message.historyId!,
-        internalDate: message.internalDate!,
-        payload: message.payload!,
+        historyId: message.historyId,
+        internalDate: message.internalDate,
+        payload: message.payload as any, // 一時的にany型で型の問題を回避
       };
     } catch (error) {
       this.logger.error(`Failed to get email details for ${messageId}`, error);

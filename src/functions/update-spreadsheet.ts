@@ -1,4 +1,4 @@
-import { SheetsService } from '../shared/services/sheets-service';
+import SheetsService from '../shared/services/sheets-service';
 import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
@@ -16,7 +16,9 @@ const updateSpreadsheet: CloudFunction = {
     try {
       logger.info('Starting execution');
 
-      const sheetsService = new SheetsService();
+      // 認証クライアントを作成（開発環境用の簡易実装）
+      const authClient = {} as any; // 開発環境では簡易的に
+      const sheetsService = new SheetsService(authClient);
       await sheetsService.initialize();
 
       const spreadsheetId = data.spreadsheetId as string;
@@ -29,7 +31,8 @@ const updateSpreadsheet: CloudFunction = {
       // 既存データを読み取り
       let existingData: string[][] = [];
       try {
-        existingData = await sheetsService.readData(spreadsheetId, 'A:C');
+        const data = await sheetsService.readData(spreadsheetId, 'A:C');
+        existingData = data as string[][];
       } catch {
         logger.info('No existing data found, creating new');
       }

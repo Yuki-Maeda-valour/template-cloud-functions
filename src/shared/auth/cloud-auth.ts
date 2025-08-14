@@ -18,26 +18,23 @@ export default class CloudAuth {
     if (process.env.REFRESH_TOKEN) {
       this.auth.setCredentials({
         refresh_token: process.env.REFRESH_TOKEN,
-        scope: [
-          'https://www.googleapis.com/auth/gmail.readonly',
-          'https://www.googleapis.com/auth/drive',
-          'https://www.googleapis.com/auth/spreadsheets',
-        ],
+        scope:
+          'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
       });
     }
   }
 
-  async getClient(): Promise<OAuth2Client> {
+  async getClient(): Promise<any> {
     try {
-      const client = await this.auth.getClient();
-      const accessToken = await client.getAccessToken();
+      // OAuth2Clientの正しい使用方法
+      const accessToken = await this.auth.getAccessToken();
 
       if (!accessToken.token) {
         throw new Error('アクセストークンが取得できませんでした');
       }
 
       this.logger.info('OAuth2 client initialized successfully');
-      return client;
+      return this.auth; // OAuth2Client自体を返す
     } catch (error) {
       this.logger.error('Failed to get OAuth2 client', error);
       throw error;

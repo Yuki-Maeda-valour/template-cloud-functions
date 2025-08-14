@@ -20,7 +20,7 @@ class FunctionRegistry {
 
     try {
       const files = readdirSync(functionsDir);
-      
+
       for (const filename of files) {
         if (extname(filename) === '.ts' || extname(filename) === '.js') {
           FunctionRegistry.loadFunction(filename);
@@ -30,7 +30,7 @@ class FunctionRegistry {
       FunctionRegistry.loaded = true;
       logger.info(`Loaded ${FunctionRegistry.functions.size} functions`);
     } catch (error) {
-      logger.warn('Could not load functions:', error);
+      logger.warn('Could not load functions:', { error: String(error) });
     }
   }
 
@@ -38,26 +38,44 @@ class FunctionRegistry {
     try {
       const filepath = join(__dirname, '../../functions', filename);
       const module = require(filepath);
-      
+
       if (FunctionRegistry.isValidFunction(module.default)) {
         const func = module.default as CloudFunction;
         FunctionRegistry.functions.set(func.config.name, func);
-        logger.info(`Loaded function: ${func.config.name}`, { description: func.config.description });
+        logger.info(`Loaded function: ${func.config.name}`, {
+          description: func.config.description,
+        });
       }
     } catch (error) {
-      logger.warn(`Failed to load ${filename}:`, error);
+      logger.warn(`Failed to load ${filename}:`, { error: String(error) });
     }
   }
 
   private static isValidFunction(obj: unknown): boolean {
-    return obj && 
-           typeof obj === 'object' && 
-           'config' in obj && 
-           'handler' in obj &&
-           obj.config && 
-           typeof obj.config === 'object' &&
-           'name' in obj.config &&
-           typeof obj.handler === 'function';
+    if (!obj || typeof obj !== 'object') {
+      return false;
+    }
+
+    const objRecord = obj as Record<string, unknown>;
+
+    if (!('config' in objRecord) || !('handler' in objRecord)) {
+      return false;
+    }
+
+    const config = objRecord.config;
+    const handler = objRecord.handler;
+
+    if (!config || typeof config !== 'object') {
+      return false;
+    }
+
+    const configRecord = config as Record<string, unknown>;
+
+    if (!('name' in configRecord) || typeof handler !== 'function') {
+      return false;
+    }
+
+    return true;
   }
 
   static getFunction(name: string): CloudFunction | undefined {

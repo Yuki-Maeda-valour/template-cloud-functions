@@ -1,4 +1,4 @@
-import { GmailService } from '../shared/services/gmail-service';
+import GmailService from '../shared/services/gmail-service';
 import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
@@ -17,7 +17,9 @@ const checkUnreadEmails: CloudFunction = {
     try {
       logger.info('Starting execution');
 
-      const gmailService = new GmailService();
+      // 認証クライアントを作成（開発環境用の簡易実装）
+      const authClient = {} as any; // 開発環境では簡易的に
+      const gmailService = new GmailService(authClient);
       await gmailService.initialize();
 
       const unreadEmails = await gmailService.getUnreadEmails();

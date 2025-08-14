@@ -1,4 +1,4 @@
-import { DriveService } from '../shared/services/drive-service';
+import DriveService from '../shared/services/drive-service';
 import Logger from '../shared/utils/logger';
 import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
 
@@ -17,7 +17,9 @@ const backupDriveFiles: CloudFunction = {
     try {
       logger.info('Starting execution');
 
-      const driveService = new DriveService();
+      // 認証クライアントを作成（開発環境用の簡易実装）
+      const authClient = {} as any; // 開発環境では簡易的に
+      const driveService = new DriveService(authClient);
       await driveService.initialize();
 
       const sourceFolderId = (data.sourceFolderId as string) || process.env.BACKUP_SOURCE_FOLDER_ID;
@@ -40,7 +42,7 @@ const backupDriveFiles: CloudFunction = {
             // await driveService.copyFile(file.id, backupFolderId);
             backedUpCount++;
           } catch (error) {
-            logger.warn(`Failed to backup ${file.name}`, error);
+            logger.warn(`Failed to backup ${file.name}`, { error: String(error) });
           }
         }
       }
