@@ -4,7 +4,8 @@ Lean Cloud Functions Architecture Template
 
 ## 概要
 
-このテンプレートは、Google Cloud Functionsを使用したサーバーレスアーキテクチャの基盤を提供します。TypeScriptで書かれており、Gmail、Drive、Sheets APIの統合が含まれています。
+このテンプレートは、Google Cloud Functionsを使用したサーバーレスアーキテクチャの基盤を提供します。
+TypeScriptで書かれており、Gmail、Drive、Sheets APIの統合が含まれています。
 
 ## 機能
 
