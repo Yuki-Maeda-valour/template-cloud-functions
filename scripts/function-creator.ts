@@ -13,8 +13,9 @@ function createFunction(name: string, description: string = '') {
     return;
   }
 
-  const template = `import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
-import Logger from '../shared/utils/logger';
+  const template = `import Logger from '../shared/utils/logger';
+import type { CloudFunction, FunctionContext, FunctionResult } from '../types/function';
+
 
 const ${toCamelCase(name)}: CloudFunction = {
   config: {
